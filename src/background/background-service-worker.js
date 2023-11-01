@@ -12,6 +12,16 @@ chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
   .catch((error) => console.error(error));
 
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request["type"] == "msg_from_content") {
+    console.log("msg receive from CONTENT", request["value"]);
+    outputDiv.innerText = request["value"];
+
+    sendResponse("msg received and sending back reply"); // this is how you send message to popup
+  }
+  return true; // this make sure sendResponse will work asynchronously
+});
+
 // SIDE PANEL: show on specific pages only
 // chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
 //   if (!tab.url) return;

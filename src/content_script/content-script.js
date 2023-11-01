@@ -38,9 +38,9 @@ document.addEventListener(
       // Since we will be styling the new one after.
       if (prevDOM != null) {
         chrome.runtime.sendMessage(
-          { type: "msg_from_popup", value: genSelectorPair(prevDOM) },
+          { type: "msg_from_content", value: genSelectorPair(prevDOM) },
           function (response) {
-            console.log("visited", genSelectorPair(prevDOM));
+            console.log("visited", response);
           }
         );
         prevDOM.classList.remove(MOUSE_VISITED_CLASSNAME);
@@ -63,7 +63,7 @@ document.addEventListener(
 // listener
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request["type"] == "msg_from_popup") {
-    console.log("msg receive from popup", request["value"]);
+    console.log("msgi receive from popup", request["value"]);
 
     sendResponse("msg received and sending back reply"); // this is how you send message to popup
   } else {

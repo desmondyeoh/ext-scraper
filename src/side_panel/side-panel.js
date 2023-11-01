@@ -49,11 +49,9 @@ function csGetArg() {
 
 function csMain(a) {
   // Unique ID for the className.
-  var MOUSE_VISITED_CLASSNAME = "crx_mouse_visited";
-
+  // var MOUSE_VISITED_CLASSNAME = "crx_mouse_visited";
   // Previous dom, that we want to track, so we can remove the previous styling.
-  var prevDOM = null;
-
+  // var prevDOM = null;
   // var genQuerySelector = function (el) {
   //   if (el.tagName.toLowerCase() == "html") return "HTML";
   //   var str = el.tagName;
@@ -66,11 +64,9 @@ function csMain(a) {
   //   }
   //   return str;
   // };
-
   // var genSelectorPair = function (el) {
   //   return genQuerySelector(el.parentNode) + " > " + genQuerySelector(el);
   // };
-
   // Mouse listener for any move event on the current document.
   // document.addEventListener(
   //   "mousemove",
@@ -78,7 +74,6 @@ function csMain(a) {
   //     // let srcElement = e.srcElement;
   //     let srcElement = e.target;
   //     console.log(genPair(srcElement));
-
   //     // Lets check if our underlying element is a IMG.
   //     //  && srcElement.nodeName == 'IMG'
   //     if (prevDOM != srcElement) {
@@ -95,10 +90,8 @@ function csMain(a) {
   //           }
   //         );
   //       }
-
   //       // Add a visited class name to the element. So we can style it.
   //       srcElement.classList.add(MOUSE_VISITED_CLASSNAME);
-
   //       // The current element is now the previous. So we can remove the class
   //       // during the next ieration.
   //       prevDOM = srcElement;
@@ -108,14 +101,5 @@ function csMain(a) {
   //   },
   //   false
   // );
-
   // listener
-  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request["type"] == "msg_from_popup") {
-      console.log("msg receive from popup");
-
-      sendResponse("msg received and sending back reply"); // this is how you send message to popup
-    }
-    return true; // this make sure sendResponse will work asynchronously
-  });
 }
