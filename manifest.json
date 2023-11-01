@@ -7,7 +7,7 @@
     "default_title": "Click to open panel"
   },
   "side_panel": {
-    "default_path": "src/side_panel/side_panel.html"
+    "default_path": "src/side_panel/side-panel.html"
   },
   "background": {
     "service_worker": "src/background/background-service-worker.js"

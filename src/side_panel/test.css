@@ -1,5 +1,6 @@
 .crx_mouse_visited {
-  display: none;
-  background-clip: #bcd5eb!important;
-  outline: 10px dashed #e9af6e!important;
+  /* display: none; */
+  /* background-clip: #bcd5eb!important; */
+  outline: 2px dashed #e9af6e!important;
+  /* border: 10px solid red; */
 }
