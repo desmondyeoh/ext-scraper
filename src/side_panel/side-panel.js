@@ -44,12 +44,32 @@ function csHello(a) {
 
   // Previous dom, that we want to track, so we can remove the previous styling.
   var prevDOM = null;
+
+
+  var generateQuerySelector = function(el) {
+    if (el.tagName.toLowerCase() == "html")
+        return "HTML";
+    var str = el.tagName;
+    str += (el.id != "") ? "#" + el.id : "";
+    if (el.className) {
+        var classes = el.className.split(/\s/);
+        for (var i = 0; i < classes.length; i++) {
+            str += "." + classes[i]
+        }
+    }
+    return str;
+}
+
+  var genPair = function(el) {
+    return generateQuerySelector(el.parentNode) + ' > ' + generateQuerySelector(el);
+  }
+
   
   // Mouse listener for any move event on the current document.
 document.addEventListener('mousemove', (e) => {
   // let srcElement = e.srcElement;
   let srcElement = e.target;
-  console.log('move', srcElement.classList);
+  console.log(genPair(srcElement));
 
   // Lets check if our underlying element is a IMG.
   //  && srcElement.nodeName == 'IMG'
@@ -59,7 +79,9 @@ document.addEventListener('mousemove', (e) => {
       // Since we will be styling the new one after.
       if (prevDOM != null) {
           prevDOM.classList.remove(MOUSE_VISITED_CLASSNAME);
+          // console.log(prevDOM.classList)
       }
+
 
       // Add a visited class name to the element. So we can style it.
       srcElement.classList.add(MOUSE_VISITED_CLASSNAME);
@@ -67,8 +89,8 @@ document.addEventListener('mousemove', (e) => {
       // The current element is now the previous. So we can remove the class
       // during the next ieration.
       prevDOM = srcElement;
-      console.info(srcElement.currentSrc);
-      console.dir(srcElement);
+      // console.info(srcElement.currentSrc);
+      // console.dir(srcElement);
   }
 }, false);
 }
