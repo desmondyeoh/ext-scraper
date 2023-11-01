@@ -24,6 +24,17 @@ startBtn.onclick = async function () {
   outputDiv.innerText = "hi there";
 };
 
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  // const outputDiv = document.getElementById("output");
+  if (request["type"] == "msg_from_content") {
+    console.log("msg receive from CONTENT", request["value"]);
+    outputDiv.innerText = request["value"];
+
+    sendResponse("msg received and sending back reply"); // this is how you send message to popup
+  }
+  return true; // this make sure sendResponse will work asynchronously
+});
+
 // document.addEventListener("DOMContentLoaded", function () {
 //   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 //     chrome.tabs.sendMessage(
