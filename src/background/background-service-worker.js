@@ -12,6 +12,19 @@ chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
   .catch((error) => console.error(error));
 
+// SIDE PANEL: show on specific pages only
+// chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
+//   if (!tab.url) return;
+
+//   const url = new URL(tab.url);
+
+//   if (url.origin === 'https://example.com') {
+//     chrome.sidePanel.setOptions({ tabId, path: 'sidepanel.html', enabled: true });
+//   } else {
+//     chrome.sidePanel.setOptions({ tabId, enabled: false });
+//   }
+// });
+
 // not used because default_action was set
 // chrome.action.onClicked.addListener(async (tab) => {
 //   chrome.windows.create(
