@@ -17,7 +17,7 @@ var generateQuerySelector = function (el) {
   return str;
 };
 
-var genPair = function (el) {
+var genSelectorPair = function (el) {
   return (
     generateQuerySelector(el.parentNode) + " > " + generateQuerySelector(el)
   );
@@ -29,7 +29,7 @@ document.addEventListener(
   (e) => {
     // let srcElement = e.srcElement;
     let srcElement = e.target;
-    console.log(genPair(srcElement));
+    console.log(genSelectorPair(srcElement));
 
     // Lets check if our underlying element is a IMG.
     //  && srcElement.nodeName == 'IMG'
@@ -37,6 +37,12 @@ document.addEventListener(
       // For NPE checking, we check safely. We need to remove the class name
       // Since we will be styling the new one after.
       if (prevDOM != null) {
+        chrome.runtime.sendMessage(
+          { type: "msg_from_popup", value: genSelectorPair(prevDOM) },
+          function (response) {
+            console.log("visited", genSelectorPair(prevDOM));
+          }
+        );
         prevDOM.classList.remove(MOUSE_VISITED_CLASSNAME);
         // console.log(prevDOM.classList)
       }
@@ -57,9 +63,11 @@ document.addEventListener(
 // listener
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request["type"] == "msg_from_popup") {
-    console.log("msg receive from popup");
+    console.log("msg receive from popup", request["value"]);
 
     sendResponse("msg received and sending back reply"); // this is how you send message to popup
+  } else {
+    console.log("ELSE: msg receive from popup");
   }
   return true; // this make sure sendResponse will work asynchronously
 });

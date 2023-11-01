@@ -9,6 +9,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
+      "css": ["src/side_panel/test.css"],
       "js": ["src/content_script/content-script.js"]
     }
   ],
