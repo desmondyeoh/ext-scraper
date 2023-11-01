@@ -4,10 +4,14 @@
   "description": "Base Level Extension",
   "version": "1.0",
   "action": {
-    "default_icon": "hello_extensions.png"
+    "default_title": "Click to open panel"
+  },
+  "side_panel": {
+    "default_path": "src/side_panel/side_panel.html"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "src/background/background-service-worker.js"
   },
-  "permissions": ["activeTab", "scripting"]
+  "permissions": ["activeTab", "scripting", "sidePanel"],
+  "host_permissions": ["https://*/*"]
 }
