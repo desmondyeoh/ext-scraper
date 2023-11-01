@@ -9,20 +9,32 @@ startBtn.onclick = async function () {
     target: { tabId: currTab.id },
     files: ["src/side_panel/test.css"],
   });
-  chrome.scripting
-    .executeScript({
-      target: { tabId: currTab.id },
-      files: ["src/side_panel/jquery-3.7.1.min.js"],
-    })
-    .then(() => {
-      chrome.scripting.executeScript({
-        target: { tabId: currTab.id },
-        func: csHello,
-        args: [csGetArg()],
-      });
-    });
+  // chrome.scripting
+  //   .executeScript({
+  //     target: { tabId: currTab.id },
+  //     files: ["src/side_panel/jquery-3.7.1.min.js"],
+  //   })
+  //   .then(() => {
+  //     chrome.scripting.executeScript({
+  //       target: { tabId: currTab.id },
+  //       func: csMain,
+  //       args: [csGetArg()],
+  //     });
+  //   });
   outputDiv.innerText = "hi there";
 };
+
+document.addEventListener("DOMContentLoaded", function () {
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    chrome.tabs.sendMessage(
+      tabs[0].id,
+      { type: "msg_from_popup" },
+      function (response) {
+        alert(response);
+      }
+    );
+  });
+});
 
 async function getCurrentTab() {
   let queryOptions = { active: true, lastFocusedWindow: true };
@@ -35,7 +47,7 @@ function csGetArg() {
   return 1;
 }
 
-function csHello(a) {
+function csMain(a) {
   // Unique ID for the className.
   var MOUSE_VISITED_CLASSNAME = "crx_mouse_visited";
 
@@ -91,4 +103,14 @@ function csHello(a) {
     },
     false
   );
+
+  // listener
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request["type"] == "msg_from_popup") {
+      console.log("msg receive from popup");
+
+      sendResponse("msg received and sending back reply"); // this is how you send message to popup
+    }
+    return true; // this make sure sendResponse will work asynchronously
+  });
 }

@@ -6,6 +6,12 @@
   "action": {
     "default_title": "Click to open panel"
   },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content_script/content-script.js"]
+    }
+  ],
   "side_panel": {
     "default_path": "src/side_panel/side-panel.html"
   },
