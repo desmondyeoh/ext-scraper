@@ -1,8 +1,8 @@
 console.log("This is a popup!");
 
-const startBtn = document.getElementById("startBtn");
+const inspectBtn = document.getElementById("inspectBtn");
 const outputDiv = document.getElementById("output");
-startBtn.onclick = async function () {
+inspectBtn.onclick = async function () {
   const currTab = await getCurrentTab();
   chrome.tabs.sendMessage(
     currTab.id,

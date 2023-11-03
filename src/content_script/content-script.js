@@ -69,6 +69,7 @@ window.onload = () => {
 
   function selectElement(e) {
     e.preventDefault();
+    e.stopPropagation();
 
     let selectorPair = getSelectorPair(e.target);
     IS_INSPECTING = false;

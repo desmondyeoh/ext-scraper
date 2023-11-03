@@ -1,6 +1,21 @@
 .crx_mouse_visited {
   /* display: none; */
   /* background-clip: #bcd5eb!important; */
+  position: relative;
   outline: 2px dashed #e9af6e!important;
+  cursor: crosshair;
   /* border: 10px solid red; */
 }
+
+
+/* .crx_mouse_visited::before { */
+  /* content: "";
+  cursor: crosshair;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%; */
+  /* background-color: rgba(0, 0, 0, 0.5); Change the color and opacity as needed */
+/* }  */
