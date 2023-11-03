@@ -3,6 +3,14 @@ console.log("This is a popup!");
 const startBtn = document.getElementById("startBtn");
 const outputDiv = document.getElementById("output");
 startBtn.onclick = async function () {
+  const currTab = await getCurrentTab();
+  chrome.tabs.sendMessage(
+    currTab.id,
+    { type: "msg_from_popup" },
+    function (resText) {
+      console.log("RESPONSE", resText);
+    }
+  );
   // inject content script
   // const currTab = await getCurrentTab();
   // chrome.scripting.insertCSS({

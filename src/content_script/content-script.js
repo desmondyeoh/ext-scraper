@@ -31,8 +31,6 @@ document.addEventListener(
     let srcElement = e.target;
     console.log(genSelectorPair(srcElement));
 
-    // Lets check if our underlying element is a IMG.
-    //  && srcElement.nodeName == 'IMG'
     if (prevDOM != srcElement) {
       // For NPE checking, we check safely. We need to remove the class name
       // Since we will be styling the new one after.
@@ -53,8 +51,6 @@ document.addEventListener(
       // The current element is now the previous. So we can remove the class
       // during the next ieration.
       prevDOM = srcElement;
-      // console.info(srcElement.currentSrc);
-      // console.dir(srcElement);
     }
   },
   false
@@ -63,11 +59,8 @@ document.addEventListener(
 // listener
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request["type"] == "msg_from_popup") {
-    console.log("msgi receive from popup", request["value"]);
-
+    console.log(sender, "msgi receive from popup", request["value"]);
     sendResponse("msg received and sending back reply"); // this is how you send message to popup
-  } else {
-    console.log("ELSE: msg receive from popup");
   }
   return true; // this make sure sendResponse will work asynchronously
 });
