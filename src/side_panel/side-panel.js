@@ -6,7 +6,7 @@ startBtn.onclick = async function () {
   const currTab = await getCurrentTab();
   chrome.tabs.sendMessage(
     currTab.id,
-    { type: "msg_from_popup" },
+    { type: "msg.popup.inspect" },
     function (resText) {
       console.log("RESPONSE", resText);
     }
@@ -34,11 +34,22 @@ startBtn.onclick = async function () {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // const outputDiv = document.getElementById("output");
-  if (request["type"] == "msg_from_content") {
-    console.log("msg receive from CONTENT", request["value"]);
-    outputDiv.innerText = request["value"];
+  switch (request["type"]) {
+    case "msg.content.test": {
+      console.log("msg receive from CONTENT", request["value"]);
+      outputDiv.innerText = request["value"];
 
-    sendResponse("msg received and sending back reply"); // this is how you send message to popup
+      sendResponse("msg received and sending back reply"); // this is how you send message to popup
+      break;
+    }
+    case "msg.content.select_element": {
+      const selectedElementSelector = request["value"];
+      sendResponse(`selector: ${selectedElementSelector}`); // this is how you send message to popup
+      break;
+    }
+    default:
+      console.log("side-panel.invalidMsgType", request["type"]);
+      break;
   }
   return true; // this make sure sendResponse will work asynchronously
 });

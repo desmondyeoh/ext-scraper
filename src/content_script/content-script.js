@@ -1,32 +1,36 @@
-// Unique ID for the className.
-var MOUSE_VISITED_CLASSNAME = "crx_mouse_visited";
+window.onload = () => {
+  // Unique ID for the className.
+  var MOUSE_VISITED_CLASSNAME = "crx_mouse_visited";
+  let IS_INSPECTING = false;
 
-// Previous dom, that we want to track, so we can remove the previous styling.
-var prevDOM = null;
+  // Previous dom, that we want to track, so we can remove the previous styling.
+  var prevDOM = null;
 
-var generateQuerySelector = function (el) {
-  if (el.tagName.toLowerCase() == "html") return "HTML";
-  var str = el.tagName;
-  str += el.id != "" ? "#" + el.id : "";
-  if (el.className) {
-    var classes = el.className.split(/\s/);
-    for (var i = 0; i < classes.length; i++) {
-      str += "." + classes[i];
+  var generateQuerySelector = function (el) {
+    if (el.tagName.toLowerCase() == "html") return "HTML";
+    var str = el.tagName;
+    str += el.id != "" ? "#" + el.id : "";
+    if (el.className) {
+      var classes = el.className.split(/\s/);
+
+      for (var i = 0; i < classes.length; i++) {
+        // skip MOUSE_VISITED_CLASSNAME
+        if (classes[i] === MOUSE_VISITED_CLASSNAME) {
+          continue;
+        }
+        str += "." + classes[i];
+      }
     }
-  }
-  return str;
-};
+    return str;
+  };
 
-var genSelectorPair = function (el) {
-  return (
-    generateQuerySelector(el.parentNode) + " > " + generateQuerySelector(el)
-  );
-};
+  var genSelectorPair = function (el) {
+    return (
+      generateQuerySelector(el.parentNode) + " > " + generateQuerySelector(el)
+    );
+  };
 
-// Mouse listener for any move event on the current document.
-document.addEventListener(
-  "mousemove",
-  (e) => {
+  function inspectElement(e) {
     // let srcElement = e.srcElement;
     let srcElement = e.target;
     console.log(genSelectorPair(srcElement));
@@ -35,12 +39,6 @@ document.addEventListener(
       // For NPE checking, we check safely. We need to remove the class name
       // Since we will be styling the new one after.
       if (prevDOM != null) {
-        chrome.runtime.sendMessage(
-          { type: "msg_from_content", value: genSelectorPair(prevDOM) },
-          function (response) {
-            console.log("visited", response);
-          }
-        );
         prevDOM.classList.remove(MOUSE_VISITED_CLASSNAME);
         // console.log(prevDOM.classList)
       }
@@ -48,19 +46,52 @@ document.addEventListener(
       // Add a visited class name to the element. So we can style it.
       srcElement.classList.add(MOUSE_VISITED_CLASSNAME);
 
+      chrome.runtime.sendMessage(
+        { type: "msg.content.test", value: genSelectorPair(srcElement) },
+        function (response) {
+          console.log("visited", response);
+        }
+      );
+
       // The current element is now the previous. So we can remove the class
       // during the next ieration.
       prevDOM = srcElement;
     }
-  },
-  false
-);
-
-// listener
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request["type"] == "msg_from_popup") {
-    console.log(sender, "msgi receive from popup", request["value"]);
-    sendResponse("msg received and sending back reply"); // this is how you send message to popup
   }
-  return true; // this make sure sendResponse will work asynchronously
-});
+
+  function selectElement(e) {
+    let srcElement = e.target;
+    IS_INSPECTING = false;
+    document.removeEventListener("mousemove", inspectElement);
+    document.removeEventListener("click", selectElement);
+    srcElement.classList.remove(MOUSE_VISITED_CLASSNAME);
+    chrome.runtime.sendMessage(
+      {
+        type: "msg.content.select_element",
+        value: genSelectorPair(srcElement),
+      },
+      function (response) {
+        console.log("selected element", response);
+      }
+    );
+  }
+
+  // Mouse listener for any move event on the current document.
+
+  // listener
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    switch (request["type"]) {
+      case "msg.popup.inspect": {
+        sendResponse("msg received and sending back reply"); // this is how you send message to popup
+        document.addEventListener("mousemove", inspectElement);
+        document.addEventListener("click", selectElement);
+        IS_INSPECTING = true;
+        break;
+      }
+      default:
+        console.log("content.invalidMsgType", request["type"]);
+        break;
+    }
+    return true; // this make sure sendResponse will work asynchronously
+  });
+};
