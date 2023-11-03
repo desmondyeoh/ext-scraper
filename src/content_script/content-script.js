@@ -24,7 +24,7 @@ window.onload = () => {
     return str;
   };
 
-  var genSelectorPair = function (el) {
+  var getSelectorPair = function (el) {
     return (
       generateQuerySelector(el.parentNode) + " > " + generateQuerySelector(el)
     );
@@ -33,21 +33,29 @@ window.onload = () => {
   function inspectElement(e) {
     // let srcElement = e.srcElement;
     let srcElement = e.target;
-    console.log(genSelectorPair(srcElement));
+    const selectorPair = getSelectorPair(srcElement);
 
     if (prevDOM != srcElement) {
       // For NPE checking, we check safely. We need to remove the class name
       // Since we will be styling the new one after.
       if (prevDOM != null) {
-        prevDOM.classList.remove(MOUSE_VISITED_CLASSNAME);
+        // prevDOM.classList.remove(MOUSE_VISITED_CLASSNAME);
         // console.log(prevDOM.classList)
+        document
+          .querySelectorAll(getSelectorPair(prevDOM))
+          .forEach((x) => x.classList.remove(MOUSE_VISITED_CLASSNAME));
       }
 
       // Add a visited class name to the element. So we can style it.
-      srcElement.classList.add(MOUSE_VISITED_CLASSNAME);
+      // srcElement.classList.add(MOUSE_VISITED_CLASSNAME);
+
+      // update all classnames
+      document
+        .querySelectorAll(selectorPair)
+        .forEach((x) => x.classList.add(MOUSE_VISITED_CLASSNAME));
 
       chrome.runtime.sendMessage(
-        { type: "msg.content.test", value: genSelectorPair(srcElement) },
+        { type: "msg.content.test", value: selectorPair },
         function (response) {
           console.log("visited", response);
         }
@@ -60,15 +68,19 @@ window.onload = () => {
   }
 
   function selectElement(e) {
-    let srcElement = e.target;
+    e.preventDefault();
+
+    let selectorPair = getSelectorPair(e.target);
     IS_INSPECTING = false;
     document.removeEventListener("mousemove", inspectElement);
     document.removeEventListener("click", selectElement);
-    srcElement.classList.remove(MOUSE_VISITED_CLASSNAME);
+    document
+      .querySelectorAll(selectorPair)
+      .forEach((x) => x.classList.remove(MOUSE_VISITED_CLASSNAME));
     chrome.runtime.sendMessage(
       {
         type: "msg.content.select_element",
-        value: genSelectorPair(srcElement),
+        value: selectorPair,
       },
       function (response) {
         console.log("selected element", response);

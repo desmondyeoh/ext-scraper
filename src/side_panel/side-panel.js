@@ -29,7 +29,7 @@ startBtn.onclick = async function () {
   //       args: [csGetArg()],
   //     });
   //   });
-  outputDiv.innerText = "hi there";
+  outputDiv.innerText = "(select an element from the browser)";
 };
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
