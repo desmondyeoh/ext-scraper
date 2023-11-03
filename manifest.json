@@ -19,6 +19,6 @@
   "background": {
     "service_worker": "src/background/background-service-worker.js"
   },
-  "permissions": ["activeTab", "scripting", "sidePanel"],
+  "permissions": ["activeTab", "scripting", "sidePanel", "storage"],
   "host_permissions": ["https://*/*"]
 }

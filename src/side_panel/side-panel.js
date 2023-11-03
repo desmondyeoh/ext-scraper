@@ -1,8 +1,7 @@
 console.log("This is a popup!");
 
-const inspectBtn = document.getElementById("inspectBtn");
 const outputDiv = document.getElementById("output");
-inspectBtn.onclick = async function () {
+document.getElementById("inspectBtn").onclick = async function () {
   const currTab = await getCurrentTab();
   chrome.tabs.sendMessage(
     currTab.id,
@@ -30,6 +29,48 @@ inspectBtn.onclick = async function () {
   //     });
   //   });
   outputDiv.innerText = "(select an element from the browser)";
+};
+
+document.getElementById("saveBtn").onclick = async function () {
+  chrome.storage.local.set({
+    scriptInput: document.getElementById("scriptInput").value,
+  });
+};
+
+document.getElementById("loadBtn").onclick = async function () {
+  chrome.storage.local.get(["scriptInput"]).then((result) => {
+    document.getElementById("scriptInput").value = result.scriptInput;
+  });
+};
+
+document.getElementById("executeBtn").onclick = async function () {
+  const currTab = await getCurrentTab();
+  // chrome.tabs.sendMessage(
+  //   currTab.id,
+  //   { type: "msg.popup.inspect" },
+  //   function (resText) {
+  //     console.log("RESPONSE", resText);
+  //   }
+  // );
+  // inject content script
+  // const currTab = await getCurrentTab();
+  // chrome.scripting.insertCSS({
+  //   target: { tabId: currTab.id },
+  //   files: ["src/side_panel/test.css"],
+  // });
+  // chrome.scripting
+  //   .executeScript({
+  //     target: { tabId: currTab.id },
+  //     files: ["src/side_panel/jquery-3.7.1.min.js"],
+  //   })
+  //   .then(() => {
+  //     chrome.scripting.executeScript({
+  //       target: { tabId: currTab.id },
+  //       func: csMain,
+  //       args: [csGetArg()],
+  //     });
+  //   });
+  // outputDiv.innerText = "(select an element from the browser)";
 };
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
