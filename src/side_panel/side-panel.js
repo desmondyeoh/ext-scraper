@@ -64,7 +64,9 @@ loadBtn.onclick = async function () {
 loadBtn.click();
 
 const executeBtn = document.getElementById("executeBtn");
-executeBtn.onclick = async function () {
+executeBtn.onclick = executeScript;
+
+async function executeScript() {
   const currTab = await getCurrentTab();
   chrome.tabs.sendMessage(
     currTab.id,
@@ -81,7 +83,7 @@ executeBtn.onclick = async function () {
       updateResultsTable(EXECUTION_RESULTS);
     }
   );
-};
+}
 
 function updateResultsTable(results) {
   console.log(results);
@@ -142,11 +144,11 @@ function nestLoop(lines, i = 0) {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // const outputDiv = document.getElementById("output");
+  console.log("onMessage:", request["type"]);
   switch (request["type"]) {
     case "msg.content.test": {
       console.log("msg receive from CONTENT", request["value"]);
       outputDiv.innerText = request["value"];
-
       sendResponse("msg received and sending back reply"); // this is how you send message to popup
       break;
     }
@@ -154,6 +156,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const selectedElementSelector = request["value"];
       sendResponse(`selector: ${selectedElementSelector}`); // this is how you send message to popup
       break;
+    }
+    case "msg.content.maybe_execute_on_load": {
+      if (document.getElementById("shouldExecuteForever").value) {
+        executeScript();
+      }
     }
     default:
       console.log("side-panel.invalidMsgType", request["type"]);

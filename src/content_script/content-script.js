@@ -1,4 +1,7 @@
 window.onload = () => {
+  // new page load - execute if
+  chrome.runtime.sendMessage({ type: "msg.content.maybe_execute_on_load" });
+
   // Unique ID for the className.
   var MOUSE_VISITED_CLASSNAME = "crx_mouse_visited";
   let IS_INSPECTING = false;
@@ -162,7 +165,6 @@ function executeScript(ast, selector = document) {
       case "click": {
         const [_cmd, selectorStr] = ast[i];
         document.querySelector(selectorStr).click();
-        // result.push(cmd + " " + selectorStr);
         break;
       }
       default:
