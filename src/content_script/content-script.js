@@ -101,12 +101,12 @@ window.onload = () => {
 
   // listener
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    sendResponse("ack:" + request["type"]);
     switch (request["type"]) {
       case "msg.popup.inspect": {
         document.addEventListener("mousemove", inspectElement);
         document.addEventListener("click", selectElement);
         IS_INSPECTING = true;
+        sendResponse("ack:" + request["type"]);
         break;
       }
       case "msg.popup.execute": {
@@ -114,10 +114,12 @@ window.onload = () => {
         console.log("scriptAst", scriptAst);
         const result = executeScript(scriptAst);
         console.log("execution result:", result);
+        sendResponse(result);
         break;
       }
       default:
         console.log("content.invalidMsgType", request["type"]);
+        sendResponse("ack:" + request["type"]);
         break;
     }
     return true; // this make sure sendResponse will work asynchronously
@@ -151,9 +153,16 @@ function executeScript(ast, selector = document) {
         result.push(text);
         break;
       }
+      case "link": {
+        const [_cmd, selectorStr] = ast[i];
+        const link = selector.querySelector(selectorStr)?.href ?? "<null>";
+        result.push(link);
+        break;
+      }
       case "click": {
         const [_cmd, selectorStr] = ast[i];
-        result.push(cmd + " " + selectorStr);
+        document.querySelector(selectorStr).click();
+        // result.push(cmd + " " + selectorStr);
         break;
       }
       default:

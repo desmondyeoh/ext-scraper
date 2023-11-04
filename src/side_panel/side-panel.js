@@ -1,6 +1,8 @@
 console.log("This is a popup!");
 
 const outputDiv = document.getElementById("output");
+const EXECUTION_RESULTS = [];
+
 document.getElementById("inspectBtn").onclick = async function () {
   const currTab = await getCurrentTab();
   chrome.tabs.sendMessage(
@@ -70,11 +72,35 @@ executeBtn.onclick = async function () {
       type: "msg.popup.execute",
       value: createAST(document.getElementById("scriptField").value),
     },
-    function (resText) {
-      console.log("RESPONSE", resText);
+    function (executionResult) {
+      EXECUTION_RESULTS.push(executionResult);
+      document.getElementById("resultsField").value =
+        JSON.stringify(EXECUTION_RESULTS);
+      document.getElementById("resultsCount").innerText =
+        EXECUTION_RESULTS.length;
+      updateResultsTable(EXECUTION_RESULTS);
     }
   );
 };
+
+function updateResultsTable(results) {
+  console.log(results);
+  let html = "";
+  for (let i = 0; i < results.length; i++) {
+    // page
+    for (let j = 0; j < results[i].length; j++) {
+      // row
+      for (let k = 0; k < results[i][j].length; k++) {
+        html += "<tr>";
+        for (let l = 0; l < results[i][j][k].length; l++) {
+          html += "<td>" + results[i][j][k][l] + "</td>";
+        }
+        html += "</tr>";
+      }
+    }
+  }
+  document.getElementById("resultsTable").innerHTML = html;
+}
 
 function createAST(scriptStr) {
   return nestLoop(tokenizeScript(scriptStr));
