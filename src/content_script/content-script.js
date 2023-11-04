@@ -111,9 +111,10 @@ window.onload = () => {
       }
       case "msg.popup.execute": {
         const scriptAst = request["value"];
-        console.log(scriptAst);
-        const result = runScript(scriptAst);
-        console.log(result);
+        console.log("scriptAst", scriptAst);
+        const result = executeScript(scriptAst);
+        console.log("execution result:", result);
+        break;
       }
       default:
         console.log("content.invalidMsgType", request["type"]);
@@ -123,7 +124,7 @@ window.onload = () => {
   });
 };
 
-function runScript(ast, selector = document) {
+function executeScript(ast, selector = document) {
   let i = 0;
   const result = [];
 
@@ -134,16 +135,19 @@ function runScript(ast, selector = document) {
         const [_cmd, selectorStr, childrenAst] = ast[i];
         const parentSelectors = selector.querySelectorAll(selectorStr);
         const inner = [];
-        for (let j = 0; parentSelectors.length; j++) {
-          inner.push(runScript(childrenAst, parentSelectors[j]));
+        for (let j = 0; j < parentSelectors.length; j++) {
+          // console.log("J", j);
+          inner.push(executeScript(childrenAst, parentSelectors[j]));
         }
         result.push(inner);
         break;
       }
       case "text": {
         const [_cmd, selectorStr] = ast[i];
-        console.log("selectorStr", selectorStr);
-        const text = selector.querySelector(selectorStr).innerText;
+        const text =
+          selectorStr === "$self"
+            ? selector.innerText
+            : selector.querySelector(selectorStr)?.innerText ?? "<null>";
         result.push(text);
         break;
       }
