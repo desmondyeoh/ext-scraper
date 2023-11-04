@@ -40,8 +40,8 @@ saveBtn.onclick = async function () {
 
 const tokenizeBtn = document.getElementById("tokenizeBtn");
 tokenizeBtn.onclick = async function () {
-  const tokenizedScript = tokenizeScript(
-    document.getElementById("scriptInput").value
+  const tokenizedScript = nestLoop(
+    tokenizeScript(document.getElementById("scriptInput").value)
   );
   document.getElementById("scriptTokens").value = JSON.stringify(
     tokenizedScript,
@@ -71,7 +71,9 @@ executeBtn.onclick = async function () {
     currTab.id,
     {
       type: "msg.popup.execute",
-      value: tokenizeScript(document.getElementById("scriptInput").value),
+      value: nestLoop(
+        tokenizeScript(document.getElementById("scriptInput").value)
+      ),
     },
     function (resText) {
       console.log("RESPONSE", resText);
@@ -81,15 +83,36 @@ executeBtn.onclick = async function () {
 
 function tokenizeScript(scriptInput) {
   let script = scriptInput.trim();
-
-  let tokens = script.split(/\n/);
-  tokens = tokens.map((str) => {
-    const firstToken = str.substring(0, str.indexOf(" "));
-    const rest = str.substring(str.indexOf(" ") + 1);
+  let lines = script.split(/\n/);
+  lines = lines.map((lineStr) => {
+    const line = lineStr.trim();
+    const firstToken = line.substring(0, line.indexOf(" "));
+    const rest = line.substring(line.indexOf(" ") + 1);
     // if no space, firstToken is empty string and rest will have the text
     return firstToken === "" ? [rest] : [firstToken, rest];
   });
-  return tokens;
+  return lines;
+}
+
+function nestLoop(lines, i = 0) {
+  const inner = [];
+  while (i < lines.length) {
+    const line = lines[i];
+    const [cmd] = line;
+    switch (cmd) {
+      case "foreach":
+        [i, nested] = nestLoop(lines, i + 1);
+        line.push(nested);
+        inner.push(line);
+        break;
+      case "endforeach":
+        return [i, inner];
+      default: // other tokens (e.g. text)
+        inner.push(line);
+    }
+    i++;
+  }
+  return inner;
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

@@ -103,8 +103,9 @@ window.onload = () => {
       }
       case "msg.popup.execute": {
         const scriptTokens = request["value"];
+        console.log(scriptTokens);
         // const tokens = tokenizeScript(scriptInput);
-        // runScript(tokens);
+        runScript(scriptTokens);
       }
       default:
         console.log("content.invalidMsgType", request["type"]);
@@ -114,4 +115,21 @@ window.onload = () => {
   });
 };
 
-function runScript(tokens) {}
+function runScript(tokens) {
+  let i = 0;
+  while (i < tokens.length) {
+    const [cmd, arg] = tokens[i];
+    console.log("L" + i, cmd, arg);
+    switch (cmd) {
+      case "foreach": {
+        break;
+      }
+      case "text": {
+        break;
+      }
+      default:
+        throw new Error("unhandled cmd:" + cmd);
+    }
+    i++;
+  }
+}
