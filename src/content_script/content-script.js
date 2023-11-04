@@ -93,13 +93,18 @@ window.onload = () => {
 
   // listener
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    sendResponse("ack:" + request["type"]);
     switch (request["type"]) {
       case "msg.popup.inspect": {
-        sendResponse("msg received and sending back reply"); // this is how you send message to popup
         document.addEventListener("mousemove", inspectElement);
         document.addEventListener("click", selectElement);
         IS_INSPECTING = true;
         break;
+      }
+      case "msg.popup.execute": {
+        const scriptTokens = request["value"];
+        // const tokens = tokenizeScript(scriptInput);
+        // runScript(tokens);
       }
       default:
         console.log("content.invalidMsgType", request["type"]);
@@ -108,3 +113,5 @@ window.onload = () => {
     return true; // this make sure sendResponse will work asynchronously
   });
 };
+
+function runScript(tokens) {}

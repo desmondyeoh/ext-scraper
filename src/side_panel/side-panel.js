@@ -31,47 +31,66 @@ document.getElementById("inspectBtn").onclick = async function () {
   outputDiv.innerText = "(select an element from the browser)";
 };
 
-document.getElementById("saveBtn").onclick = async function () {
+const saveBtn = document.getElementById("saveBtn");
+saveBtn.onclick = async function () {
   chrome.storage.local.set({
     scriptInput: document.getElementById("scriptInput").value,
   });
 };
 
-document.getElementById("loadBtn").onclick = async function () {
+const tokenizeBtn = document.getElementById("tokenizeBtn");
+tokenizeBtn.onclick = async function () {
+  const tokenizedScript = tokenizeScript(
+    document.getElementById("scriptInput").value
+  );
+  document.getElementById("scriptTokens").value = JSON.stringify(
+    tokenizedScript,
+    null,
+    2
+  );
+};
+
+const loadBtn = document.getElementById("loadBtn");
+loadBtn.onclick = async function () {
+  // loadBtn.innerText = "Loading...";
+  // loadBtn.disabled = true;
   chrome.storage.local.get(["scriptInput"]).then((result) => {
     document.getElementById("scriptInput").value = result.scriptInput;
+    // loadBtn.innerText = "Load";
+    // loadBtn.disabled = false;
   });
 };
 
-document.getElementById("executeBtn").onclick = async function () {
+// load button on page load
+loadBtn.click();
+
+const executeBtn = document.getElementById("executeBtn");
+executeBtn.onclick = async function () {
   const currTab = await getCurrentTab();
-  // chrome.tabs.sendMessage(
-  //   currTab.id,
-  //   { type: "msg.popup.inspect" },
-  //   function (resText) {
-  //     console.log("RESPONSE", resText);
-  //   }
-  // );
-  // inject content script
-  // const currTab = await getCurrentTab();
-  // chrome.scripting.insertCSS({
-  //   target: { tabId: currTab.id },
-  //   files: ["src/side_panel/test.css"],
-  // });
-  // chrome.scripting
-  //   .executeScript({
-  //     target: { tabId: currTab.id },
-  //     files: ["src/side_panel/jquery-3.7.1.min.js"],
-  //   })
-  //   .then(() => {
-  //     chrome.scripting.executeScript({
-  //       target: { tabId: currTab.id },
-  //       func: csMain,
-  //       args: [csGetArg()],
-  //     });
-  //   });
-  // outputDiv.innerText = "(select an element from the browser)";
+  chrome.tabs.sendMessage(
+    currTab.id,
+    {
+      type: "msg.popup.execute",
+      value: tokenizeScript(document.getElementById("scriptInput").value),
+    },
+    function (resText) {
+      console.log("RESPONSE", resText);
+    }
+  );
 };
+
+function tokenizeScript(scriptInput) {
+  let script = scriptInput.trim();
+
+  let tokens = script.split(/\n/);
+  tokens = tokens.map((str) => {
+    const firstToken = str.substring(0, str.indexOf(" "));
+    const rest = str.substring(str.indexOf(" ") + 1);
+    // if no space, firstToken is empty string and rest will have the text
+    return firstToken === "" ? [rest] : [firstToken, rest];
+  });
+  return tokens;
+}
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // const outputDiv = document.getElementById("output");
