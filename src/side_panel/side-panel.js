@@ -73,6 +73,9 @@ async function executeScript() {
     {
       type: "msg.popup.execute",
       value: createAST(document.getElementById("scriptField").value),
+      options: {
+        isInfinite: document.getElementById("shouldExecuteInfinitely").value,
+      },
     },
     function (executionResult) {
       EXECUTION_RESULTS.push(executionResult);
@@ -158,7 +161,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       break;
     }
     case "msg.content.maybe_execute_on_load": {
-      if (document.getElementById("shouldExecuteForever").value) {
+      if (document.getElementById("shouldExecuteOnLoad").value) {
         executeScript();
       }
     }
