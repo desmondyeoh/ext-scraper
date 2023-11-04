@@ -134,7 +134,11 @@ async function genExecuteScript(ast, options) {
     const [_cmd, firstSelectorStr] = ast[0];
     await genWaitForElementToExist(firstSelectorStr);
     // execute
-    await genExecuteScriptOnce(ast, options);
+    const results = await genExecuteScriptOnce(ast, options);
+    chrome.runtime.sendMessage({
+      type: "msg.content.send_results",
+      value: results,
+    });
     // sleep 2 sec
     await genSleep(2000);
   } while (isInfinite);
@@ -143,7 +147,7 @@ async function genExecuteScript(ast, options) {
 async function genExecuteScriptOnce(ast, options) {
   const { selector = document } = options;
   let i = 0;
-  const result = [];
+  const results = [];
 
   // execute the AST
   while (i < ast.length) {
@@ -162,7 +166,7 @@ async function genExecuteScriptOnce(ast, options) {
             })
           );
         }
-        result.push(inner);
+        results.push(inner);
         break;
       }
       case "text": {
@@ -171,13 +175,13 @@ async function genExecuteScriptOnce(ast, options) {
           selectorStr === "$self"
             ? selector.innerText
             : selector.querySelector(selectorStr)?.innerText ?? "<null>";
-        result.push(text);
+        results.push(text);
         break;
       }
       case "link": {
         const [_cmd, selectorStr] = ast[i];
         const link = selector.querySelector(selectorStr)?.href ?? "<null>";
-        result.push(link);
+        results.push(link);
         break;
       }
       case "click": {
@@ -190,7 +194,7 @@ async function genExecuteScriptOnce(ast, options) {
     }
     i++;
   }
-  return result;
+  return results;
 }
 
 async function genWaitForElementToExist(selector) {

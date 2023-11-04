@@ -68,24 +68,13 @@ executeBtn.onclick = executeScript;
 
 async function executeScript() {
   const currTab = await getCurrentTab();
-  chrome.tabs.sendMessage(
-    currTab.id,
-    {
-      type: "msg.popup.execute",
-      value: createAST(document.getElementById("scriptField").value),
-      options: {
-        isInfinite: document.getElementById("shouldExecuteInfinitely").value,
-      },
+  chrome.tabs.sendMessage(currTab.id, {
+    type: "msg.popup.execute",
+    value: createAST(document.getElementById("scriptField").value),
+    options: {
+      isInfinite: document.getElementById("shouldExecuteInfinitely").checked,
     },
-    function (executionResult) {
-      EXECUTION_RESULTS.push(executionResult);
-      document.getElementById("resultsField").value =
-        JSON.stringify(EXECUTION_RESULTS);
-      document.getElementById("resultsCount").innerText =
-        EXECUTION_RESULTS.length;
-      updateResultsTable(EXECUTION_RESULTS);
-    }
-  );
+  });
 }
 
 function updateResultsTable(results) {
@@ -164,6 +153,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       if (document.getElementById("shouldExecuteOnLoad").value) {
         executeScript();
       }
+    }
+    case "msg.content.send_results": {
+      EXECUTION_RESULTS.push(request["value"]);
+      document.getElementById("resultsField").value =
+        JSON.stringify(EXECUTION_RESULTS);
+      document.getElementById("resultsCount").innerText =
+        EXECUTION_RESULTS.length;
+      updateResultsTable(EXECUTION_RESULTS);
     }
     default:
       console.log("side-panel.invalidMsgType", request["type"]);
