@@ -1,5 +1,4 @@
 window.onload = () => {
-  import { onChildrenReordered } from "../../node_modules/chrome-types/index.d";
   // Unique ID for the className.
   var MOUSE_VISITED_CLASSNAME = "crx_mouse_visited";
   let IS_INSPECTING = false;
@@ -7,12 +6,16 @@ window.onload = () => {
   // Previous dom, that we want to track, so we can remove the previous styling.
   var prevDOM = null;
 
-  var generateQuerySelector = function (el) {
+  var getSelectorStr = function (el) {
+    // if (el === null) {
+    //   return null;
+    // }
+    // console.log("ELEMENT!!", el, el.tagName);
     if (el.tagName.toLowerCase() == "html") return "HTML";
     var str = el.tagName;
     str += el.id != "" ? "#" + el.id : "";
     if (el.className) {
-      var classes = el.className.split(/\s/);
+      var classes = el.className.trim().split(/\s+/);
 
       for (var i = 0; i < classes.length; i++) {
         // skip MOUSE_VISITED_CLASSNAME
@@ -25,16 +28,20 @@ window.onload = () => {
     return str;
   };
 
-  var getSelectorPair = function (el) {
-    return (
-      generateQuerySelector(el.parentNode) + " > " + generateQuerySelector(el)
-    );
+  var getSelectorStrRecursive = function (el) {
+    const curSelectorStr = getSelectorStr(el);
+
+    if (curSelectorStr === "HTML") {
+      return "HTML";
+    }
+
+    return getSelectorStrRecursive(el.parentNode) + " > " + curSelectorStr;
   };
 
   function inspectElement(e) {
     // let srcElement = e.srcElement;
     let srcElement = e.target;
-    const selectorPair = getSelectorPair(srcElement);
+    const selectorPair = getSelectorStrRecursive(srcElement);
 
     if (prevDOM != srcElement) {
       // For NPE checking, we check safely. We need to remove the class name
@@ -43,7 +50,7 @@ window.onload = () => {
         // prevDOM.classList.remove(MOUSE_VISITED_CLASSNAME);
         // console.log(prevDOM.classList)
         document
-          .querySelectorAll(getSelectorPair(prevDOM))
+          .querySelectorAll(getSelectorStrRecursive(prevDOM))
           .forEach((x) => x.classList.remove(MOUSE_VISITED_CLASSNAME));
       }
 
@@ -72,7 +79,7 @@ window.onload = () => {
     e.preventDefault();
     e.stopPropagation();
 
-    let selectorPair = getSelectorPair(e.target);
+    let selectorPair = getSelectorStrRecursive(e.target);
     IS_INSPECTING = false;
     document.removeEventListener("mousemove", inspectElement);
     document.removeEventListener("click", selectElement);
@@ -105,7 +112,8 @@ window.onload = () => {
       case "msg.popup.execute": {
         const scriptAst = request["value"];
         console.log(scriptAst);
-        runScript(scriptAst);
+        const result = runScript(scriptAst);
+        console.log(result);
       }
       default:
         console.log("content.invalidMsgType", request["type"]);
@@ -115,17 +123,33 @@ window.onload = () => {
   });
 };
 
-function runScript(ast) {
+function runScript(ast, selector = document) {
   let i = 0;
+  const result = [];
+
   while (i < ast.length) {
     const [cmd] = ast[i];
     switch (cmd) {
       case "foreach": {
-        const [_cmd, selector, onChildrenReordered] = ast[i];
+        const [_cmd, selectorStr, childrenAst] = ast[i];
+        const parentSelectors = selector.querySelectorAll(selectorStr);
+        const inner = [];
+        for (let j = 0; parentSelectors.length; j++) {
+          inner.push(runScript(childrenAst, parentSelectors[j]));
+        }
+        result.push(inner);
         break;
       }
       case "text": {
-        const [_cmd, selector] = ast[i];
+        const [_cmd, selectorStr] = ast[i];
+        console.log("selectorStr", selectorStr);
+        const text = selector.querySelector(selectorStr).innerText;
+        result.push(text);
+        break;
+      }
+      case "click": {
+        const [_cmd, selectorStr] = ast[i];
+        result.push(cmd + " " + selectorStr);
         break;
       }
       default:
@@ -133,4 +157,5 @@ function runScript(ast) {
     }
     i++;
   }
+  return result;
 }
