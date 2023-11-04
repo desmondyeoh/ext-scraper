@@ -6,18 +6,18 @@
   <button id="inspectBtn">inspect</button>
   <div id="output">click "inspect" to grab element selector</div>
   <h2>Script</h2>
-  <textarea name="scriptInput" id="scriptInput" cols="30" rows="10"></textarea>
+  <textarea name="scriptField" id="scriptField" cols="30" rows="10"></textarea>
   <pre>
     q = document.querySelector
     qa = document.querySelectorAll
   </pre>
-  <button id="tokenizeBtn">Tokenize</button>
+  <button id="astizeBtn">AST-ize</button>
   <button id="executeBtn">Execute</button>
   <button id="saveBtn">Save</button>
   <button id="loadBtn">Load</button>
   <div>
-    <h3>Tokenized</h3>
-    <textarea name="scriptTokens" id="scriptTokens" cols="30" rows="10"></textarea>
+    <h3>AST</h3>
+    <textarea name="astField" id="astField" cols="30" rows="10"></textarea>
   </div>
   <script src="side-panel.js"></script>
 </body>

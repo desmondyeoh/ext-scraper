@@ -1,4 +1,5 @@
 window.onload = () => {
+  import { onChildrenReordered } from "../../node_modules/chrome-types/index.d";
   // Unique ID for the className.
   var MOUSE_VISITED_CLASSNAME = "crx_mouse_visited";
   let IS_INSPECTING = false;
@@ -102,10 +103,9 @@ window.onload = () => {
         break;
       }
       case "msg.popup.execute": {
-        const scriptTokens = request["value"];
-        console.log(scriptTokens);
-        // const tokens = tokenizeScript(scriptInput);
-        runScript(scriptTokens);
+        const scriptAst = request["value"];
+        console.log(scriptAst);
+        runScript(scriptAst);
       }
       default:
         console.log("content.invalidMsgType", request["type"]);
@@ -115,16 +115,17 @@ window.onload = () => {
   });
 };
 
-function runScript(tokens) {
+function runScript(ast) {
   let i = 0;
-  while (i < tokens.length) {
-    const [cmd, arg] = tokens[i];
-    console.log("L" + i, cmd, arg);
+  while (i < ast.length) {
+    const [cmd] = ast[i];
     switch (cmd) {
       case "foreach": {
+        const [_cmd, selector, onChildrenReordered] = ast[i];
         break;
       }
       case "text": {
+        const [_cmd, selector] = ast[i];
         break;
       }
       default:

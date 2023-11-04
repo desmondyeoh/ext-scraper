@@ -34,28 +34,25 @@ document.getElementById("inspectBtn").onclick = async function () {
 const saveBtn = document.getElementById("saveBtn");
 saveBtn.onclick = async function () {
   chrome.storage.local.set({
-    scriptInput: document.getElementById("scriptInput").value,
+    scriptField: document.getElementById("scriptField").value,
   });
 };
 
-const tokenizeBtn = document.getElementById("tokenizeBtn");
-tokenizeBtn.onclick = async function () {
-  const tokenizedScript = nestLoop(
-    tokenizeScript(document.getElementById("scriptInput").value)
-  );
-  document.getElementById("scriptTokens").value = JSON.stringify(
-    tokenizedScript,
-    null,
-    2
-  );
+const astizeBtn = document.getElementById("astizeBtn");
+astizeBtn.onclick = async function () {
+  const ast = createAST(document.getElementById("scriptField").value);
+  document.getElementById("astField").value = JSON.stringify(ast, null, 2);
 };
 
 const loadBtn = document.getElementById("loadBtn");
 loadBtn.onclick = async function () {
   // loadBtn.innerText = "Loading...";
   // loadBtn.disabled = true;
-  chrome.storage.local.get(["scriptInput"]).then((result) => {
-    document.getElementById("scriptInput").value = result.scriptInput;
+  chrome.storage.local.get(["scriptField"]).then((result) => {
+    if (result == null) {
+      return;
+    }
+    document.getElementById("scriptField").value = result.scriptField;
     // loadBtn.innerText = "Load";
     // loadBtn.disabled = false;
   });
@@ -71,9 +68,7 @@ executeBtn.onclick = async function () {
     currTab.id,
     {
       type: "msg.popup.execute",
-      value: nestLoop(
-        tokenizeScript(document.getElementById("scriptInput").value)
-      ),
+      value: createAST(document.getElementById("scriptField").value),
     },
     function (resText) {
       console.log("RESPONSE", resText);
@@ -81,8 +76,12 @@ executeBtn.onclick = async function () {
   );
 };
 
-function tokenizeScript(scriptInput) {
-  let script = scriptInput.trim();
+function createAST(scriptStr) {
+  return nestLoop(tokenizeScript(scriptStr));
+}
+
+function tokenizeScript(scriptField) {
+  let script = scriptField.trim();
   let lines = script.split(/\n/);
   lines = lines.map((lineStr) => {
     const line = lineStr.trim();
