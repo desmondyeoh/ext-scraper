@@ -102,7 +102,7 @@ function createAST(scriptStr) {
 
 function tokenizeScript(scriptField) {
   let script = scriptField.trim();
-  let lines = script.split(/\n/);
+  let lines = script.split(/\n\s*/);
   lines = lines.map((lineStr) => {
     const line = lineStr.trim();
     const firstToken = line.substring(0, line.indexOf(" "));
