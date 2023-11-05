@@ -1,7 +1,7 @@
 console.log("This is a popup!");
 
 const outputDiv = document.getElementById("output");
-const EXECUTION_RESULTS = [];
+let EXECUTION_RESULTS = [];
 
 document.getElementById("inspectBtn").onclick = async function () {
   const currTab = await getCurrentTab();
@@ -63,6 +63,13 @@ loadBtn.onclick = async function () {
 // load button on page load
 loadBtn.click();
 
+const clearResultsBtn = document.getElementById("clearResultsBtn");
+clearResultsBtn.onclick = function () {
+  console.log("clearResultsBtn click");
+  EXECUTION_RESULTS = [];
+  updateResultsUI();
+};
+
 const executeBtn = document.getElementById("executeBtn");
 executeBtn.onclick = executeScript;
 
@@ -77,8 +84,11 @@ async function executeScript() {
   });
 }
 
-function updateResultsTable(results) {
-  console.log(results);
+function updateResultsUI() {
+  const results = EXECUTION_RESULTS;
+  document.getElementById("resultsField").value = JSON.stringify(results);
+  document.getElementById("resultsCount").innerText = results.length;
+  // update table
   let html = "";
   for (let i = 0; i < results.length; i++) {
     // page
@@ -156,11 +166,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
     case "msg.content.send_results": {
       EXECUTION_RESULTS.push(request["value"]);
-      document.getElementById("resultsField").value =
-        JSON.stringify(EXECUTION_RESULTS);
-      document.getElementById("resultsCount").innerText =
-        EXECUTION_RESULTS.length;
-      updateResultsTable(EXECUTION_RESULTS);
+      updateResultsUI();
     }
     default:
       console.log("side-panel.invalidMsgType", request["type"]);
