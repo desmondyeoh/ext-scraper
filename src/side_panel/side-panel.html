@@ -8,8 +8,13 @@
   <h2>Script</h2>
   <textarea name="scriptField" id="scriptField" cols="30" rows="10"></textarea>
   <pre>
-    q = document.querySelector
-    qa = document.querySelectorAll
+// comment = commenting
+click {selector} = simulate mouse click
+foreach {selector} endforeach = for loop
+link {selector} = get href of selector
+text {selector} = get the innerText of selector
+text $self = get innerText of foreach's selector
+wait {selector} = wait for element to exist
   </pre>
   <button id="astizeBtn">AST-ize</button>
   <button id="saveBtn">Save</button>
@@ -17,8 +22,10 @@
   <hr>
   <input type="checkbox" id="shouldExecuteOnLoad" name="shouldExecuteOnLoad">
   <label for="shouldExecuteOnLoad">should execute on load</label>
+  <br>
   <input type="checkbox" id="shouldExecuteInfinitely" name="shouldExecuteInfinitely">
-  <label for="shouldExecuteInfinitely">Should execute infinitely</label>
+  <label for="shouldExecuteInfinitely">should execute infinitely</label>
+  <br>
   <button id="executeBtn">Execute</button>
   <div>
     <h3>AST</h3>
