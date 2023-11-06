@@ -24,9 +24,29 @@
     <h3>AST</h3>
     <textarea name="astField" id="astField" cols="30" rows="10"></textarea>
   </div>
-  <h3>Results <small>(count: <span id="resultsCount">0</span>)</small><button id="clearResultsBtn">Clear</button></h3>
-  <table id="resultsTable"></table>
+  <h3>Results
+    <small>(count: <span id="resultsCount">0</span>)</small>
+    <button id="exportCSVBtn">Export CSV</button>
+    <button id="clearResultsBtn">Clear</button>
+  </h3>
+  <div class="table-wrapper">
+    <table id="resultsTable"></table>
+  </div>
   <textarea name="resultsField" id="resultsField" cols="30" rows="10"></textarea>
+  <style>
+    table,
+    td {
+      padding: 2;
+      margin: 0;
+      border-collapse: collapse;
+      border: 1px solid gray;
+    }
+
+    .table-wrapper {
+      margin: 4px;
+      overflow-y: scroll;
+    }
+  </style>
   <script src="side-panel.js"></script>
 </body>
 
