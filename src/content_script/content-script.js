@@ -1,10 +1,12 @@
 // Unique ID for the className.
 var MOUSE_VISITED_CLASSNAME = "crx_mouse_visited";
 let IS_INSPECTING = false;
+let SHOULD_RUN = true;
+let IS_RUNNING = false;
 
 window.onload = () => {
-  // new page load - execute if page refreshes AND execute_forever is true
-  // chrome.runtime.sendMessage({ type: "msg.content.maybe_execute_on_load" });
+  // new page load - run if page refreshes AND run_forever is true
+  // chrome.runtime.sendMessage({ type: "msg.content.maybe_run_on_load" });
 
   // Previous dom, that we want to track, so we can remove the previous styling.
   var prevDOM = null;
@@ -107,13 +109,20 @@ window.onload = () => {
           sendResponse("ack:" + request["type"]);
           break;
         }
-        case "msg.popup.execute": {
+        case "msg.popup.run": {
+          IS_RUNNING = true;
           const scriptAst = request["value"];
           const isInfinite = request["options"]?.isInfinite ?? false;
           console.log("scriptAst", scriptAst);
           console.log("isInfinite", isInfinite);
-          await genExecuteScript(scriptAst, { isInfinite });
+          await genRunScript(scriptAst, { isInfinite });
+          IS_RUNNING = false;
           sendResponse("done execution");
+          break;
+        }
+        case "msg.popup.stop": {
+          SHOULD_RUN = false;
+          sendResponse("done stop");
           break;
         }
         default:
@@ -126,11 +135,16 @@ window.onload = () => {
   );
 };
 
-async function genExecuteScript(ast, options) {
+async function genRunScript(ast, options) {
   const { isInfinite } = options;
   do {
-    // execute
-    const results = await genExecuteScriptOnce(ast, options);
+    // "Stop" is called, stop current run.
+    if (!SHOULD_RUN) {
+      SHOULD_RUN = true; // reset flag
+      return;
+    }
+    // run
+    const results = await genRunScriptOnce(ast, options);
     chrome.runtime.sendMessage({
       type: "msg.content.send_results",
       value: results,
@@ -140,12 +154,12 @@ async function genExecuteScript(ast, options) {
   } while (isInfinite);
 }
 
-async function genExecuteScriptOnce(ast, options) {
+async function genRunScriptOnce(ast, options) {
   const { selector = document } = options;
   let i = 0;
   const results = [];
 
-  // execute the AST
+  // run the AST
   while (i < ast.length) {
     const [cmd] = ast[i];
     switch (cmd) {
@@ -165,7 +179,7 @@ async function genExecuteScriptOnce(ast, options) {
         for (let j = 0; j < parentSelectors.length; j++) {
           // console.log("J", j);
           inner.push(
-            await genExecuteScriptOnce(childrenAst, {
+            await genRunScriptOnce(childrenAst, {
               ...options,
               selector: parentSelectors[j],
             })

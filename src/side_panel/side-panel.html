@@ -20,13 +20,14 @@ wait {selector} = wait for element to exist
   <button id="saveBtn">Save</button>
   <button id="loadBtn">Load</button>
   <hr>
-  <input type="checkbox" id="shouldExecuteOnLoad" name="shouldExecuteOnLoad">
-  <label for="shouldExecuteOnLoad">should execute on load</label>
+  <input type="checkbox" id="shouldRunOnLoad" name="shouldRunOnLoad">
+  <label for="shouldRunOnLoad">should run on load</label>
   <br>
-  <input type="checkbox" id="shouldExecuteInfinitely" name="shouldExecuteInfinitely">
-  <label for="shouldExecuteInfinitely">should execute infinitely</label>
+  <input type="checkbox" id="shouldRunInfinitely" name="shouldRunInfinitely">
+  <label for="shouldRunInfinitely">should run infinitely</label>
   <br>
-  <button id="executeBtn">Execute</button>
+  <button id="runBtn">Run</button>
+  <button id="stopBtn">Stop</button>
   <div>
     <h3>AST</h3>
     <textarea name="astField" id="astField" cols="30" rows="10"></textarea>

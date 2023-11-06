@@ -1,7 +1,7 @@
 console.log("This is a popup!");
 
 const outputDiv = document.getElementById("output");
-let EXECUTION_RESULTS = [];
+let RUN_RESULTS = [];
 
 document.getElementById("inspectBtn").onclick = async function () {
   const currTab = await getCurrentTab();
@@ -19,12 +19,12 @@ document.getElementById("inspectBtn").onclick = async function () {
   //   files: ["src/side_panel/test.css"],
   // });
   // chrome.scripting
-  //   .executeScript({
+  //   .runScript({
   //     target: { tabId: currTab.id },
   //     files: ["src/side_panel/jquery-3.7.1.min.js"],
   //   })
   //   .then(() => {
-  //     chrome.scripting.executeScript({
+  //     chrome.scripting.runScript({
   //       target: { tabId: currTab.id },
   //       func: csMain,
   //       args: [csGetArg()],
@@ -65,15 +65,15 @@ loadBtn.click();
 
 const clearResultsBtn = document.getElementById("clearResultsBtn");
 clearResultsBtn.onclick = function () {
-  EXECUTION_RESULTS = [];
+  RUN_RESULTS = [];
   updateResultsUI();
 };
 
 const exportCSVBtn = document.getElementById("exportCSVBtn");
 exportCSVBtn.onclick = function () {
   console.log("exportCSVBtn click");
-  console.log(EXECUTION_RESULTS.flat(2));
-  exportCSV("test.csv", EXECUTION_RESULTS.flat(2));
+  console.log(RUN_RESULTS.flat(2));
+  exportCSV("test.csv", RUN_RESULTS.flat(2));
 };
 
 function exportCSV(filename, rows) {
@@ -116,23 +116,30 @@ function exportCSV(filename, rows) {
     }
   }
 }
-
-const executeBtn = document.getElementById("executeBtn");
-executeBtn.onclick = executeScript;
-
-async function executeScript() {
+const stopBtn = document.getElementById("stopBtn");
+stopBtn.onclick = async function () {
   const currTab = await getCurrentTab();
   chrome.tabs.sendMessage(currTab.id, {
-    type: "msg.popup.execute",
+    type: "msg.popup.stop",
+  });
+};
+
+const runBtn = document.getElementById("runBtn");
+runBtn.onclick = runScript;
+
+async function runScript() {
+  const currTab = await getCurrentTab();
+  chrome.tabs.sendMessage(currTab.id, {
+    type: "msg.popup.run",
     value: createAST(document.getElementById("scriptField").value),
     options: {
-      isInfinite: document.getElementById("shouldExecuteInfinitely").checked,
+      isInfinite: document.getElementById("shouldRunInfinitely").checked,
     },
   });
 }
 
 function updateResultsUI() {
-  const results = EXECUTION_RESULTS;
+  const results = RUN_RESULTS;
   document.getElementById("resultsField").value = JSON.stringify(results);
   document.getElementById("resultsCount").innerText = results.length;
   // update table
@@ -206,17 +213,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse(`selector: ${selectedElementSelector}`); // this is how you send message to popup
       break;
     }
-    case "msg.content.maybe_execute_on_load": {
-      if (document.getElementById("shouldExecuteOnLoad").value) {
-        executeScript();
+    case "msg.content.maybe_run_on_load": {
+      if (document.getElementById("shouldRunOnLoad").value) {
+        sendResponse(`${request["type"]}: running script`);
+        runScript();
       }
+      sendResponse(`${request["type"]}: not running script`);
+      break;
     }
     case "msg.content.send_results": {
-      EXECUTION_RESULTS.push(request["value"]);
+      RUN_RESULTS.push(request["value"]);
       updateResultsUI();
+      sendResponse(`${request["type"]}: received results`);
+      break;
     }
     default:
       console.log("side-panel.invalidMsgType", request["type"]);
+      sendResponse(`${request["type"]}: invalidMsgType`);
       break;
   }
   return true; // this make sure sendResponse will work asynchronously
