@@ -112,9 +112,8 @@ window.onload = () => {
           const isInfinite = request["options"]?.isInfinite ?? false;
           console.log("scriptAst", scriptAst);
           console.log("isInfinite", isInfinite);
-          const result = await genExecuteScript(scriptAst, { isInfinite });
-          console.log("execution result:", result);
-          sendResponse(result);
+          await genExecuteScript(scriptAst, { isInfinite });
+          sendResponse("done execution");
           break;
         }
         default:
@@ -130,9 +129,6 @@ window.onload = () => {
 async function genExecuteScript(ast, options) {
   const { isInfinite } = options;
   do {
-    // wait for first selector of script to exist
-    const [_cmd, firstSelectorStr] = ast[0];
-    await genWaitForElementToExist(firstSelectorStr);
     // execute
     const results = await genExecuteScriptOnce(ast, options);
     chrome.runtime.sendMessage({
@@ -153,6 +149,10 @@ async function genExecuteScriptOnce(ast, options) {
   while (i < ast.length) {
     const [cmd] = ast[i];
     switch (cmd) {
+      case "//": {
+        // comment, skip
+        break;
+      }
       case "click": {
         const [_cmd, selectorStr] = ast[i];
         document.querySelector(selectorStr).click();
@@ -187,6 +187,11 @@ async function genExecuteScriptOnce(ast, options) {
             ? selector.innerText
             : selector.querySelector(selectorStr)?.innerText ?? "<null>";
         results.push(text);
+        break;
+      }
+      case "wait": {
+        const [_cmd, selectorStr] = ast[i];
+        await genWaitForElementToExist(selectorStr);
         break;
       }
       default:
