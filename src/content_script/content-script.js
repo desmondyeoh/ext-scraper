@@ -149,8 +149,6 @@ async function genRunScript(ast, options) {
       type: "msg.content.send_results",
       value: results,
     });
-    // sleep 2 sec
-    await genSleep(2000);
   } while (isInfinite);
 }
 
@@ -192,6 +190,11 @@ async function genRunScriptOnce(ast, options) {
         const [_cmd, selectorStr] = ast[i];
         const link = selector.querySelector(selectorStr)?.href ?? "<null>";
         results.push(link);
+        break;
+      }
+      case "sleepms": {
+        const [_cmd, selectorStr] = ast[i];
+        await genSleep(selectorStr);
         break;
       }
       case "text": {
