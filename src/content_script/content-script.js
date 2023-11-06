@@ -130,7 +130,7 @@ window.onload = () => {
 async function genExecuteScript(ast, options) {
   const { isInfinite } = options;
   do {
-    // wait for first selector to exist. only check at root-lv recursion
+    // wait for first selector of script to exist
     const [_cmd, firstSelectorStr] = ast[0];
     await genWaitForElementToExist(firstSelectorStr);
     // execute
@@ -153,6 +153,11 @@ async function genExecuteScriptOnce(ast, options) {
   while (i < ast.length) {
     const [cmd] = ast[i];
     switch (cmd) {
+      case "click": {
+        const [_cmd, selectorStr] = ast[i];
+        document.querySelector(selectorStr).click();
+        break;
+      }
       case "foreach": {
         const [_cmd, selectorStr, childrenAst] = ast[i];
         const parentSelectors = selector.querySelectorAll(selectorStr);
@@ -169,6 +174,12 @@ async function genExecuteScriptOnce(ast, options) {
         results.push(inner);
         break;
       }
+      case "link": {
+        const [_cmd, selectorStr] = ast[i];
+        const link = selector.querySelector(selectorStr)?.href ?? "<null>";
+        results.push(link);
+        break;
+      }
       case "text": {
         const [_cmd, selectorStr] = ast[i];
         const text =
@@ -176,17 +187,6 @@ async function genExecuteScriptOnce(ast, options) {
             ? selector.innerText
             : selector.querySelector(selectorStr)?.innerText ?? "<null>";
         results.push(text);
-        break;
-      }
-      case "link": {
-        const [_cmd, selectorStr] = ast[i];
-        const link = selector.querySelector(selectorStr)?.href ?? "<null>";
-        results.push(link);
-        break;
-      }
-      case "click": {
-        const [_cmd, selectorStr] = ast[i];
-        document.querySelector(selectorStr).click();
         break;
       }
       default:
@@ -198,7 +198,6 @@ async function genExecuteScriptOnce(ast, options) {
 }
 
 async function genWaitForElementToExist(selector) {
-  console.log(genWaitForElementToExist, selector);
   return new Promise((resolve) => {
     if (document.querySelector(selector)) {
       return resolve(document.querySelector(selector));
