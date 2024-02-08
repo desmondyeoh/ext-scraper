@@ -40,7 +40,6 @@ window.onload = () => {
   };
 
   function inspectElement(e) {
-    // let srcElement = e.srcElement;
     let srcElement = e.target;
     const selectorPair = getSelectorStrRecursive(srcElement);
 
