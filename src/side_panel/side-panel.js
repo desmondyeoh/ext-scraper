@@ -3,7 +3,16 @@ console.log("This is a popup!");
 const outputDiv = document.getElementById("output");
 let RUN_RESULTS = [];
 
-document.getElementById("inspectBtn").onclick = async function () {
+// element getters
+const inspectBtn = document.getElementById("inspectBtn");
+const saveBtn = document.getElementById("saveBtn");
+const astizeBtn = document.getElementById("astizeBtn");
+const clearResultsBtn = document.getElementById("clearResultsBtn");
+const exportCSVBtn = document.getElementById("exportCSVBtn");
+const stopBtn = document.getElementById("stopBtn");
+const runBtn = document.getElementById("runBtn");
+
+inspectBtn.onclick = async function () {
   const currTab = await getCurrentTab();
   chrome.tabs.sendMessage(
     currTab.id,
@@ -33,14 +42,12 @@ document.getElementById("inspectBtn").onclick = async function () {
   outputDiv.innerText = "(select an element from the browser)";
 };
 
-const saveBtn = document.getElementById("saveBtn");
 saveBtn.onclick = async function () {
   chrome.storage.local.set({
     scriptField: document.getElementById("scriptField").value,
   });
 };
 
-const astizeBtn = document.getElementById("astizeBtn");
 astizeBtn.onclick = async function () {
   const ast = createAST(document.getElementById("scriptField").value);
   document.getElementById("astField").value = JSON.stringify(ast, null, 2);
@@ -63,13 +70,11 @@ loadBtn.onclick = async function () {
 // load button on page load
 loadBtn.click();
 
-const clearResultsBtn = document.getElementById("clearResultsBtn");
 clearResultsBtn.onclick = function () {
   RUN_RESULTS = [];
   updateResultsUI();
 };
 
-const exportCSVBtn = document.getElementById("exportCSVBtn");
 exportCSVBtn.onclick = function () {
   console.log("exportCSVBtn click");
   console.log(RUN_RESULTS.flat(2));
@@ -116,7 +121,6 @@ function exportCSV(filename, rows) {
     }
   }
 }
-const stopBtn = document.getElementById("stopBtn");
 stopBtn.onclick = async function () {
   const currTab = await getCurrentTab();
   chrome.tabs.sendMessage(currTab.id, {
@@ -124,7 +128,6 @@ stopBtn.onclick = async function () {
   });
 };
 
-const runBtn = document.getElementById("runBtn");
 runBtn.onclick = runScript;
 
 async function runScript() {
@@ -213,14 +216,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse(`selector: ${selectedElementSelector}`); // this is how you send message to popup
       break;
     }
-    case "msg.content.maybe_run_on_load": {
-      if (document.getElementById("shouldRunOnLoad").value) {
-        sendResponse(`${request["type"]}: running script`);
-        runScript();
-      }
-      sendResponse(`${request["type"]}: not running script`);
-      break;
-    }
+    // case "msg.content.maybe_run_on_load": {
+    //   if (document.getElementById("shouldRunOnLoad").value) {
+    //     sendResponse(`${request["type"]}: running script`);
+    //     runScript();
+    //   }
+    //   sendResponse(`${request["type"]}: not running script`);
+    //   break;
+    // }
     case "msg.content.send_results": {
       RUN_RESULTS.push(request["value"]);
       updateResultsUI();
@@ -232,6 +235,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse(`${request["type"]}: invalidMsgType`);
       break;
   }
+
   return true; // this make sure sendResponse will work asynchronously
 });
 
@@ -252,65 +256,4 @@ async function getCurrentTab() {
   // `tab` will either be a `tabs.Tab` instance or `undefined`.
   let [tab] = await chrome.tabs.query(queryOptions);
   return tab;
-}
-
-function csGetArg() {
-  return 1;
-}
-
-function csMain(a) {
-  // Unique ID for the className.
-  // var MOUSE_VISITED_CLASSNAME = "crx_mouse_visited";
-  // Previous dom, that we want to track, so we can remove the previous styling.
-  // var prevDOM = null;
-  // var genQuerySelector = function (el) {
-  //   if (el.tagName.toLowerCase() == "html") return "HTML";
-  //   var str = el.tagName;
-  //   str += el.id != "" ? "#" + el.id : "";
-  //   if (el.className) {
-  //     var classes = el.className.split(/\s/);
-  //     for (var i = 0; i < classes.length; i++) {
-  //       str += "." + classes[i];
-  //     }
-  //   }
-  //   return str;
-  // };
-  // var genSelectorPair = function (el) {
-  //   return genQuerySelector(el.parentNode) + " > " + genQuerySelector(el);
-  // };
-  // Mouse listener for any move event on the current document.
-  // document.addEventListener(
-  //   "mousemove",
-  //   (e) => {
-  //     // let srcElement = e.srcElement;
-  //     let srcElement = e.target;
-  //     console.log(genPair(srcElement));
-  //     // Lets check if our underlying element is a IMG.
-  //     //  && srcElement.nodeName == 'IMG'
-  //     if (prevDOM != srcElement) {
-  //       // For NPE checking, we check safely. We need to remove the class name
-  //       // Since we will be styling the new one after.
-  //       if (prevDOM != null) {
-  //         prevDOM.classList.remove(MOUSE_VISITED_CLASSNAME);
-  //         // console.log(prevDOM.classList)
-  //         chrome.tabs.sendMessage(
-  //           tabs[0].id,
-  //           { type: "msg_from_popup", value: genSelectorPair(el) },
-  //           function (response) {
-  //             alert(genSelectorPair(el));
-  //           }
-  //         );
-  //       }
-  //       // Add a visited class name to the element. So we can style it.
-  //       srcElement.classList.add(MOUSE_VISITED_CLASSNAME);
-  //       // The current element is now the previous. So we can remove the class
-  //       // during the next ieration.
-  //       prevDOM = srcElement;
-  //       // console.info(srcElement.currentSrc);
-  //       // console.dir(srcElement);
-  //     }
-  //   },
-  //   false
-  // );
-  // listener
 }
