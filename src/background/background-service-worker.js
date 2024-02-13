@@ -1,3 +1,6 @@
+/**
+ * Make CORS requests
+ */
 // chrome.runtime.onInstalled.addListener(() => {
 //   chrome.action.setBadgeText({
 //     text: "OFF",
@@ -12,6 +15,31 @@ chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
   .catch((error) => console.error(error));
 
+/**
+ * LISTENER
+ */
+chrome.runtime.onMessage.addListener(async (request, sender, onSuccess) => {
+  console.log("[background] onMessage:", request["type"]);
+  switch (request["type"]) {
+    case "msg.content-bg.fetch": {
+      fetch(request["url"], {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(request["data"]),
+      }).then(onSuccess);
+      break;
+    }
+  }
+
+  // .catch(onError);
+  fetch(url)
+    .then((response) => response.text())
+    .then((responseText) => onSuccess(responseText));
+
+  return true; // Will respond asynchronously.
+});
 // SIDE PANEL: show on specific pages only
 // chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
 //   if (!tab.url) return;

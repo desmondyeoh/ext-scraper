@@ -16,7 +16,7 @@ inspectBtn.onclick = async function () {
   const currTab = await getCurrentTab();
   chrome.tabs.sendMessage(
     currTab.id,
-    { type: "msg.popup.inspect" },
+    { type: "msg.sp-content.inspect" },
     function (resText) {
       console.log("RESPONSE", resText);
     }
@@ -124,7 +124,7 @@ function exportCSV(filename, rows) {
 stopBtn.onclick = async function () {
   const currTab = await getCurrentTab();
   chrome.tabs.sendMessage(currTab.id, {
-    type: "msg.popup.stop",
+    type: "msg.sp-content.stop",
   });
 };
 
@@ -133,7 +133,7 @@ runBtn.onclick = runScript;
 async function runScript() {
   const currTab = await getCurrentTab();
   chrome.tabs.sendMessage(currTab.id, {
-    type: "msg.popup.run",
+    type: "msg.sp-content.run",
     value: createAST(document.getElementById("scriptField").value),
     options: {
       isInfinite: document.getElementById("shouldRunInfinitely").checked,
@@ -201,22 +201,25 @@ function nestLoop(lines, i = 0) {
   return inner;
 }
 
+/**
+ * LISTENER
+ */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // const outputDiv = document.getElementById("output");
-  console.log("onMessage:", request["type"]);
+  console.log("[sidePanel] onMessage:", request["type"]);
   switch (request["type"]) {
-    case "msg.content.test": {
+    case "msg.content-sp.test": {
       console.log("msg receive from CONTENT", request["value"]);
       outputDiv.innerText = request["value"];
       sendResponse("msg received and sending back reply"); // this is how you send message to popup
       break;
     }
-    case "msg.content.select_element": {
+    case "msg.content-sp.select_element": {
       const selectedElementSelector = request["value"];
       sendResponse(`selector: ${selectedElementSelector}`); // this is how you send message to popup
       break;
     }
-    // case "msg.content.maybe_run_on_load": {
+    // case "msg.content-sp.maybe_run_on_load": {
     //   if (document.getElementById("shouldRunOnLoad").value) {
     //     sendResponse(`${request["type"]}: running script`);
     //     runScript();
@@ -224,7 +227,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     //   sendResponse(`${request["type"]}: not running script`);
     //   break;
     // }
-    case "msg.content.send_results": {
+    case "msg.content-sp.send_results": {
       RUN_RESULTS.push(request["value"]);
       updateResultsUI();
       sendResponse(`${request["type"]}: received results`);

@@ -1,3 +1,7 @@
+/**
+ * Can access the DOM content. Will listen to events from side-panel
+ */
+
 // Unique ID for the className.
 var MOUSE_VISITED_CLASSNAME = "crx_mouse_visited";
 let IS_INSPECTING = false;
@@ -6,7 +10,7 @@ let IS_RUNNING = false;
 
 window.onload = () => {
   // new page load - run if page refreshes AND run_forever is true
-  // chrome.runtime.sendMessage({ type: "msg.content.maybe_run_on_load" });
+  // chrome.runtime.sendMessage({ type: "msg.content-sp.maybe_run_on_load" });
 
   // Previous dom, that we want to track, so we can remove the previous styling.
   var prevDOM = null;
@@ -63,7 +67,7 @@ window.onload = () => {
         .forEach((x) => x.classList.add(MOUSE_VISITED_CLASSNAME));
 
       chrome.runtime.sendMessage(
-        { type: "msg.content.test", value: selectorPair },
+        { type: "msg.content-sp.test", value: selectorPair },
         function (response) {
           console.log("visited", response);
         }
@@ -88,7 +92,7 @@ window.onload = () => {
       .forEach((x) => x.classList.remove(MOUSE_VISITED_CLASSNAME));
     chrome.runtime.sendMessage(
       {
-        type: "msg.content.select_element",
+        type: "msg.content-sp.select_element",
         value: selectorPair,
       },
       function (response) {
@@ -97,18 +101,20 @@ window.onload = () => {
     );
   }
 
-  // Mouse listener for any move event on the current document.
+  /**
+   * LISTENER
+   */
   chrome.runtime.onMessage.addListener(
     async (request, sender, sendResponse) => {
       switch (request["type"]) {
-        case "msg.popup.inspect": {
+        case "msg.sp-content.inspect": {
           document.addEventListener("mousemove", inspectElement);
           document.addEventListener("click", selectElement);
           IS_INSPECTING = true;
           sendResponse("ack:" + request["type"]);
           break;
         }
-        case "msg.popup.run": {
+        case "msg.sp-content.run": {
           IS_RUNNING = true;
           const scriptAst = request["value"];
           const isInfinite = request["options"]?.isInfinite ?? false;
@@ -119,7 +125,7 @@ window.onload = () => {
           sendResponse("done execution");
           break;
         }
-        case "msg.popup.stop": {
+        case "msg.sp-content.stop": {
           SHOULD_RUN = false;
           sendResponse("done stop");
           break;
@@ -144,8 +150,29 @@ async function genRunScript(ast, options) {
     }
     // run
     const results = await genRunScriptOnce(ast, options);
+    chrome.runtime.sendMessage(
+      {
+        type: "msg.content-bg.fetch",
+        url: "http://localhost:3000/saveFile",
+        data: results,
+      },
+      (data) => {
+        console.log("saveFile succeed", data);
+      }
+    );
+    // fetch(, {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify(),
+    // })
+    //   .then()
+    //   .catch((err) => {
+    //     console.log("saveFile failed", err);
+    //   });
     chrome.runtime.sendMessage({
-      type: "msg.content.send_results",
+      type: "msg.content-sp.send_results",
       value: results,
     });
   } while (isInfinite);
