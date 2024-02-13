@@ -32,12 +32,6 @@ chrome.runtime.onMessage.addListener(async (request, sender, onSuccess) => {
       break;
     }
   }
-
-  // .catch(onError);
-  fetch(url)
-    .then((response) => response.text())
-    .then((responseText) => onSuccess(responseText));
-
   return true; // Will respond asynchronously.
 });
 // SIDE PANEL: show on specific pages only
