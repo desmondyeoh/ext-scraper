@@ -27,7 +27,10 @@ chrome.runtime.onMessage.addListener(async (request, sender, onSuccess) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(request["data"]),
+        body: JSON.stringify({
+          metadata: request["metadata"],
+          data: request["data"],
+        }),
       }).then(onSuccess);
       break;
     }

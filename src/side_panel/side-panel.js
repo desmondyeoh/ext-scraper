@@ -4,15 +4,26 @@ const outputDiv = document.getElementById("output");
 let RUN_RESULTS = [];
 
 // element getters
-const inspectBtn = document.getElementById("inspectBtn");
-const saveBtn = document.getElementById("saveBtn");
-const astizeBtn = document.getElementById("astizeBtn");
-const clearResultsBtn = document.getElementById("clearResultsBtn");
-const exportCSVBtn = document.getElementById("exportCSVBtn");
-const stopBtn = document.getElementById("stopBtn");
-const runBtn = document.getElementById("runBtn");
+const btnInspect = document.getElementById("btnInspect");
+const btnSave = document.getElementById("btnSave");
+const btnASTize = document.getElementById("btnASTize");
+const btnClearResults = document.getElementById("btnClearResults");
+const btnExportCSV = document.getElementById("btnExportCSV");
+const btnStop = document.getElementById("btnStop");
+const btnRun = document.getElementById("btnRun");
 
-inspectBtn.onclick = async function () {
+const spnStatus = document.getElementById("spnStatus");
+
+const inpScript = document.getElementById("inpScript");
+
+const chkShouldRunIndefinitely = document.getElementById(
+  "chkShouldRunIndefinitely"
+);
+const chkShouldClearResultsAfterEachRun = document.getElementById(
+  "chkShouldClearResultsAfterEachRun"
+);
+
+btnInspect.onclick = async function () {
   const currTab = await getCurrentTab();
   chrome.tabs.sendMessage(
     currTab.id,
@@ -42,14 +53,14 @@ inspectBtn.onclick = async function () {
   outputDiv.innerText = "(select an element from the browser)";
 };
 
-saveBtn.onclick = async function () {
+btnSave.onclick = async function () {
   chrome.storage.local.set({
-    scriptField: document.getElementById("scriptField").value,
+    inpScript: inpScript.value,
   });
 };
 
-astizeBtn.onclick = async function () {
-  const ast = createAST(document.getElementById("scriptField").value);
+btnASTize.onclick = async function () {
+  const ast = createAST(inpScript.value);
   document.getElementById("astField").value = JSON.stringify(ast, null, 2);
 };
 
@@ -57,11 +68,11 @@ const loadBtn = document.getElementById("loadBtn");
 loadBtn.onclick = async function () {
   // loadBtn.innerText = "Loading...";
   // loadBtn.disabled = true;
-  chrome.storage.local.get(["scriptField"]).then((result) => {
+  chrome.storage.local.get(["inpScript"]).then((result) => {
     if (result == null) {
       return;
     }
-    document.getElementById("scriptField").value = result.scriptField;
+    inpScript.value = result.inpScript;
     // loadBtn.innerText = "Load";
     // loadBtn.disabled = false;
   });
@@ -70,16 +81,20 @@ loadBtn.onclick = async function () {
 // load button on page load
 loadBtn.click();
 
-clearResultsBtn.onclick = function () {
-  RUN_RESULTS = [];
-  updateResultsUI();
+btnClearResults.onclick = function () {
+  clearResults();
 };
 
-exportCSVBtn.onclick = function () {
-  console.log("exportCSVBtn click");
+btnExportCSV.onclick = function () {
+  console.log("btnExportCSV click");
   console.log(RUN_RESULTS.flat(2));
   exportCSV("test.csv", RUN_RESULTS.flat(2));
 };
+
+function clearResults() {
+  RUN_RESULTS = [];
+  updateResultsUI();
+}
 
 function exportCSV(filename, rows) {
   var processRow = function (row) {
@@ -121,24 +136,28 @@ function exportCSV(filename, rows) {
     }
   }
 }
-stopBtn.onclick = async function () {
+btnStop.onclick = async function () {
+  updateStatusUIText("stop btn clicked");
   const currTab = await getCurrentTab();
   chrome.tabs.sendMessage(currTab.id, {
     type: "msg.sp-content.stop",
   });
 };
 
-runBtn.onclick = runScript;
-
-async function runScript() {
+btnRun.onclick = async function () {
   const currTab = await getCurrentTab();
   chrome.tabs.sendMessage(currTab.id, {
     type: "msg.sp-content.run",
-    value: createAST(document.getElementById("scriptField").value),
+    value: createAST(inpScript.value),
     options: {
-      isInfinite: document.getElementById("shouldRunInfinitely").checked,
+      shouldRunInfinitely: chkShouldRunIndefinitely.checked,
+      shouldClearResultsAfterEachRun: chkShouldClearResultsAfterEachRun.checked,
     },
   });
+};
+
+function updateStatusUIText(text) {
+  spnStatus.innerText = text;
 }
 
 function updateResultsUI() {
@@ -167,8 +186,8 @@ function createAST(scriptStr) {
   return nestLoop(tokenizeScript(scriptStr));
 }
 
-function tokenizeScript(scriptField) {
-  let script = scriptField.trim();
+function tokenizeScript(inpScript) {
+  let script = inpScript.trim();
   let lines = script.split(/\n\s*/);
   lines = lines.map((lineStr) => {
     const line = lineStr.trim();
@@ -214,6 +233,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse("msg received and sending back reply"); // this is how you send message to popup
       break;
     }
+    case "msg.content-sp.clear_results": {
+      clearResults();
+      break;
+    }
     case "msg.content-sp.select_element": {
       const selectedElementSelector = request["value"];
       sendResponse(`selector: ${selectedElementSelector}`); // this is how you send message to popup
@@ -231,6 +254,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       RUN_RESULTS.push(request["value"]);
       updateResultsUI();
       sendResponse(`${request["type"]}: received results`);
+      break;
+    }
+    case "msg.content-sp.start_run": {
+      updateStatusUIText("Running");
+      break;
+    }
+    case "msg.content-sp.finish_run": {
+      updateStatusUIText("Finish!");
       break;
     }
     default:

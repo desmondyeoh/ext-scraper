@@ -106,6 +106,7 @@ window.onload = () => {
    */
   chrome.runtime.onMessage.addListener(
     async (request, sender, sendResponse) => {
+      console.log("[content-script] onMessage:", request);
       switch (request["type"]) {
         case "msg.sp-content.inspect": {
           document.addEventListener("mousemove", inspectElement);
@@ -117,10 +118,21 @@ window.onload = () => {
         case "msg.sp-content.run": {
           IS_RUNNING = true;
           const scriptAst = request["value"];
-          const isInfinite = request["options"]?.isInfinite ?? false;
+          const shouldRunInfinitely =
+            request["options"]?.shouldRunInfinitely ?? false;
+          const shouldClearResultsAfterEachRun =
+            request["options"]?.shouldClearResultsAfterEachRun ?? false;
           console.log("scriptAst", scriptAst);
-          console.log("isInfinite", isInfinite);
-          await genRunScript(scriptAst, { isInfinite });
+          chrome.runtime.sendMessage({
+            type: "msg.content-sp.start_run",
+          });
+          await genRunScript(scriptAst, {
+            shouldRunInfinitely,
+            shouldClearResultsAfterEachRun,
+          });
+          chrome.runtime.sendMessage({
+            type: "msg.content-sp.finish_run",
+          });
           IS_RUNNING = false;
           sendResponse("done execution");
           break;
@@ -131,7 +143,7 @@ window.onload = () => {
           break;
         }
         default:
-          console.log("content.invalidMsgType", request["type"]);
+          console.log("[content] no match message type:", request["type"]);
           sendResponse("ack:" + request["type"]);
           break;
       }
@@ -141,19 +153,33 @@ window.onload = () => {
 };
 
 async function genRunScript(ast, options) {
-  const { isInfinite } = options;
+  const { shouldRunInfinitely, shouldClearResultsAfterEachRun } = options;
   do {
     // "Stop" is called, stop current run.
     if (!SHOULD_RUN) {
       SHOULD_RUN = true; // reset flag
-      return;
+      break;
     }
+    if (shouldClearResultsAfterEachRun) {
+      chrome.runtime.sendMessage({
+        type: "msg.content-sp.clear_results",
+      });
+    }
+
+    // Extract filename from URL
+    const parts = /property-for-sale\/(\d+)/.exec(location.href);
+    // first page has no number
+    const idx = parts == null ? 1 : parts[1];
+    const filename = "pg" + String(idx).padStart(5, "0");
+    console.log("parts", parts, idx);
+
     // run
     const results = await genRunScriptOnce(ast, options);
     chrome.runtime.sendMessage(
       {
         type: "msg.content-bg.fetch",
         url: "http://localhost:3000/saveFile",
+        metadata: { filename },
         data: results,
       },
       (data) => {
@@ -175,7 +201,7 @@ async function genRunScript(ast, options) {
       type: "msg.content-sp.send_results",
       value: results,
     });
-  } while (isInfinite);
+  } while (shouldRunInfinitely);
 }
 
 async function genRunScriptOnce(ast, options) {
@@ -194,6 +220,14 @@ async function genRunScriptOnce(ast, options) {
       case "click": {
         const [_cmd, selectorStr] = ast[i];
         document.querySelector(selectorStr).click();
+        break;
+      }
+      case "click_maybe": {
+        const [_cmd, selectorStr] = ast[i];
+        const ele = document.querySelector(selectorStr);
+        if (ele != null) {
+          ele.click();
+        }
         break;
       }
       case "foreach": {

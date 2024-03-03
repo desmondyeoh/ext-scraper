@@ -3,10 +3,10 @@
 
 <body>
   <h1>ext-scraper</h1>
-  <button id="inspectBtn">inspect</button>
+  <button id="btnInspect">inspect</button>
   <div id="output">click "inspect" to grab element selector</div>
   <h2>Script</h2>
-  <textarea name="scriptField" id="scriptField" cols="30" rows="10"></textarea>
+  <textarea name="inpScript" id="inpScript" cols="30" rows="10"></textarea>
   <pre>
 // comment = commenting
 click {selector} = simulate mouse click
@@ -17,26 +17,30 @@ text {selector} = get the innerText of selector
 text $self = get innerText of foreach's selector
 wait {selector} = wait for element to exist
   </pre>
-  <button id="astizeBtn">AST-ize</button>
-  <button id="saveBtn">Save</button>
+  <button id="btnASTize">AST-ize</button>
+  <button id="btnSave">Save</button>
   <button id="loadBtn">Load</button>
   <hr>
   <input type="checkbox" id="shouldRunOnLoad" name="shouldRunOnLoad">
   <label for="shouldRunOnLoad">should run on load</label>
   <br>
-  <input type="checkbox" id="shouldRunInfinitely" name="shouldRunInfinitely">
-  <label for="shouldRunInfinitely">should run infinitely</label>
+  <input type="checkbox" id="chkShouldRunIndefinitely" name="shouldRunInfinitely">
+  <label for="chkShouldRunIndefinitely">should run infinitely</label>
   <br>
-  <button id="runBtn">Run</button>
-  <button id="stopBtn">Stop</button>
+  <input type="checkbox" id="chkShouldClearResultsAfterEachRun" name="shouldRunInfinitely">
+  <label for="chkShouldClearResultsAfterEachRun">should clear results after each run</label>
+  <br>
+  <button id="btnRun">Run</button>
+  <button id="btnStop">Stop</button>
+  <span id="spnStatus">(status)</span>
   <div>
     <h3>AST</h3>
     <textarea name="astField" id="astField" cols="30" rows="10"></textarea>
   </div>
   <h3>Results
     <small>(count: <span id="resultsCount">0</span>)</small>
-    <button id="exportCSVBtn">Export CSV</button>
-    <button id="clearResultsBtn">Clear</button>
+    <button id="btnExportCSV">Export CSV</button>
+    <button id="btnClearResults">Clear</button>
   </h3>
   <div class="table-wrapper">
     <table id="resultsTable"></table>
